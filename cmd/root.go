@@ -21,6 +21,12 @@ func init() {
 	rootCmd.PersistentFlags().StringVar(&nodeURL, "url", "http://main.confluxrpc.com", "Conflux fullnode RPC URL")
 }
 
+func exitIfErr(err error, msg string, args ...interface{}) {
+	if err != nil {
+		logrus.WithError(err).Fatalf(msg, args...)
+	}
+}
+
 // Execute is the command line entrypoint.
 func Execute() {
 	if err := rootCmd.Execute(); err != nil {
