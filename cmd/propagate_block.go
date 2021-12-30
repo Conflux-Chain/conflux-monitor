@@ -9,6 +9,7 @@ import (
 	sdk "github.com/Conflux-Chain/go-conflux-sdk"
 	"github.com/inancgumus/screen"
 	"github.com/rcrowley/go-metrics"
+	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
 
@@ -42,6 +43,10 @@ func monitorBlockPropagation(*cobra.Command, []string) {
 	screen.Clear()
 
 	for range ticker.C {
+		if unhandled := len(epochCh); unhandled > 10 {
+			logrus.Fatalf("Too many epoch unhandled: %v", unhandled)
+		}
+
 		screen.MoveTopLeft()
 
 		fmt.Println("========== Pivot Block Statistic ==========")
