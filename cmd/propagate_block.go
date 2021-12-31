@@ -14,7 +14,7 @@ import (
 
 var blockPropagationCmd = &cobra.Command{
 	Use:   "blockPropagation",
-	Short: "Statistic the block propagation latency",
+	Short: "Block propagation statistics",
 	Run:   monitorBlockPropagation,
 }
 
