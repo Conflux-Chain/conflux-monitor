@@ -8,7 +8,6 @@ import (
 	"github.com/Conflux-Chain/conflux-monitor/worker"
 	sdk "github.com/Conflux-Chain/go-conflux-sdk"
 	"github.com/inancgumus/screen"
-	"github.com/rcrowley/go-metrics"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
@@ -49,33 +48,23 @@ func monitorBlockPropagation(*cobra.Command, []string) {
 
 		screen.MoveTopLeft()
 
-		fmt.Println("========== Pivot Block Statistic ==========")
-		printStat(worker.TimerPropagationPivotBlock)
+		ss1 := worker.TimerPropagationPivotBlock.Snapshot()
+		ss2 := worker.TimerPropagationAllBlocks.Snapshot()
+		ps1 := ss1.Percentiles([]float64{0.5, 0.9, 0.99})
+		ps2 := ss2.Percentiles([]float64{0.5, 0.9, 0.99})
 
+		fmt.Printf("%-6s%10s%10s\n", "[TPS]", "Pivot", "All")
+		fmt.Printf("%-6s%10.1f%10.1f\n", "mean", ss1.RateMean(), ss2.RateMean())
+		fmt.Printf("%-6s%10.1f%10.1f\n", "m1", ss1.Rate1(), ss2.Rate1())
+		fmt.Printf("%-6s%10.1f%10.1f\n", "m5", ss1.Rate5(), ss2.Rate5())
+		fmt.Printf("%-6s%10.1f%10.1f\n", "m15", ss1.Rate15(), ss2.Rate15())
 		fmt.Println()
-		fmt.Println()
-		fmt.Println()
-
-		fmt.Println("========== All Blocks Statistic ==========")
-		printStat(worker.TimerPropagationAllBlocks)
+		fmt.Println("[Latency (secs)]")
+		fmt.Printf("%-6s%10.1f%10.1f\n", "min", time.Duration(ss1.Min()).Seconds(), time.Duration(ss2.Min()).Seconds())
+		fmt.Printf("%-6s%10.1f%10.1f\n", "mean", time.Duration(ss1.Mean()).Seconds(), time.Duration(ss2.Mean()).Seconds())
+		fmt.Printf("%-6s%10.1f%10.1f\n", "p50", time.Duration(ps1[0]).Seconds(), time.Duration(ps2[0]).Seconds())
+		fmt.Printf("%-6s%10.1f%10.1f\n", "p90", time.Duration(ps1[1]).Seconds(), time.Duration(ps2[1]).Seconds())
+		fmt.Printf("%-6s%10.1f%10.1f\n", "p99", time.Duration(ps1[2]).Seconds(), time.Duration(ps2[2]).Seconds())
+		fmt.Printf("%-6s%10.1f%10.1f\n", "max", time.Duration(ss1.Max()).Seconds(), time.Duration(ss2.Max()).Seconds())
 	}
-}
-
-func printStat(timer metrics.Timer) {
-	ss := timer.Snapshot()
-	ps := ss.Percentiles([]float64{0.5, 0.9, 0.99})
-
-	fmt.Println("[TPS]")
-	fmt.Printf("mean: %10.1f\n", ss.RateMean())
-	fmt.Printf("m1:   %10.1f\n", ss.Rate1())
-	fmt.Printf("m5:   %10.1f\n", ss.Rate5())
-	fmt.Printf("m15:  %10.1f\n", ss.Rate15())
-	fmt.Println()
-	fmt.Println("[Latency]")
-	fmt.Printf("Min:  %10.1fs\n", time.Duration(ss.Min()).Seconds())
-	fmt.Printf("Mean: %10.1fs\n", time.Duration(ss.Mean()).Seconds())
-	fmt.Printf("P50:  %10.1fs\n", time.Duration(ps[0]).Seconds())
-	fmt.Printf("P90:  %10.1fs\n", time.Duration(ps[1]).Seconds())
-	fmt.Printf("P99:  %10.1fs\n", time.Duration(ps[2]).Seconds())
-	fmt.Printf("Max:  %10.1fs\n", time.Duration(ss.Max()).Seconds())
 }
